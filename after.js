@@ -1,93 +1,95 @@
 (function() {
     var after = {};
 
-    var _promise = (function () {
-        var ctor = function (pending) {
-            var that = this;
-            var _state;
+    var _Promise = (function () {
+        var ctor = function (pendingContainer) {
+            var _state = 'pending';
             var _stateValue;
             var _onFulfilled = [];
             var _onRejected = [];
 
+            var _wrapListener = function (thenPending, rawListener) {
+                return function (value) {
+                    try {
+                        var value2 = rawListener(value);
+                    } catch (e) {
+                        thenPending.reject(e);
+                        return;
+                    }
+
+                    if (value2 !== null && value2 !== undefined) {
+                        thenPending.fulfill(value2);
+                        return;
+                    }
+
+                    thenPending.fulfill(value);
+                    return;
+                };
+            };
+
             this.then = function (onFulfilled, onRejected) {
-                var pending = _pending();
+                var thenPending = _pending();
 
                 if (typeof onFulfilled === 'function') {
-                    _onFulfilled.push(function (value) {
-                        try {
-                            var value2 = onFulfilled(value);
-                        } catch (e) {
-                            pending.reject(e);
-                            return;
-                        }
-
-                        if (value2 !== null && value2 !== undefined) {
-                            pending.fulfill(value2);
-                            return;
-                        }
-
-                        pending.fulfill(value1);
-                        return;
-                    });
+                    _onFulfilled.push(
+                        _wrapListener(thenPending, onFulfilled));
                 }
 
                 if (typeof onRejected === 'function') {
-                    _onRejected.push(function (value) {
-                        try {
-                            var value2 = onRejected(value);
-                        } catch (e) {
-                            pending.reject(e);
-                            return;
-                        }
-
-                        if (value2 !== null && value2 !== undefined) {
-                            pending.fulfill(value2);
-                            return;
-                        }
-
-                        pending.fulfill(value1);
-                        return;
-                    });
+                    _onRejected.push(
+                        _wrapListener(thenPending, onRejected));
                 }
 
                 if (_state == 'fulfilled')
                 {
-                    setTimeout(function () { fulfill(stateValue); }, 0);
+                    setTimeout(function () {
+                        pendingContainer.fulfill(_stateValue);
+                    }, 0);
                 }
 
                 if (_state == 'rejected')
                 {
-                    setTimeout(function () { reject(stateValue); }, 0);
+                    setTimeout(function () {
+                        pendingContainer.reject(_stateValue);
+                    }, 0);
                 }
 
-                return pending.promise;
+                return thenPending.promise;
             };
 
-            pending.promise = this;
+            pendingContainer.promise = this;
 
-            pending.fulfill = function (value) {
-                _state = 'fulfilled';
-                _stateValue = value;
-
-                var fulfillers = _onFulfilled.slice();
-                _onFulfilled = [];
-                _onRejected = [];
-
-                for (var fulfillerIndex = 0; fulfillerIndex < fulfillers.length; fulfillerIndex++) {
-                    fulfillers[fulfillerIndex](value);
+            pendingContainer.fulfill = function (value) {
+                if (_state === 'pending') {
+                    _state = 'fulfilled';
+                    _stateValue = value;
                 }
-            };;
 
-            pending.reject = function (reason) {
-                _state = 'rejected';
-                _stateValue = reason;
+                if (_state === 'fulfilled') {
+                    var fulfillers = _onFulfilled.slice();
+                    _onFulfilled = [];
+                    _onRejected = [];
 
-                var rejectors = _onRejected.slice();
-                _onRejected = [];
-                _onFulfilled = [];
+                    for (var fulfillerIndex = 0; fulfillerIndex < fulfillers.length; fulfillerIndex++) {
+                        fulfillers[fulfillerIndex](value);
+                    }
+                }
+            };
 
-                for (var rejectorIndex = 0; rejectorIndex < rejectors.length; rejectorIndex++) {
-                    rejectors[rejectorIndex](reason);
+            pendingContainer.reject = function (reason) {
+                if (_state === 'pending') {
+                    _state = 'rejected';
+                    _stateValue = reason;
+                }
+
+                if (_state === 'rejected') {
+                    var rejectors = _onRejected.slice();
+                    _onRejected = [];
+                    _onFulfilled = [];
+
+                    for (var rejectorIndex = 0; rejectorIndex < rejectors.length; rejectorIndex++) {
+                        rejectors[rejectorIndex](reason);
+                    }
                 }
             };
         };
@@ -97,7 +99,7 @@
 
     var _pending = function () {
         var pending = {};
-        new _promise(pending);
+        new _Promise(pending);
         return pending;
     };
 
@@ -114,7 +116,7 @@
     };
 
     after = {
-        promise: _promise,
+        Promise: _Promise,
         pending: _pending,
         fulfilled: _fulfilled,
         rejected: _rejected
