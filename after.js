@@ -122,7 +122,12 @@
         rejected: _rejected
     };
 
-    if (typeof define === 'function') {
+    if (typeof exports !== 'undefined') {
+        exports.Promise = _Promise;
+        exports.pending = _pending;
+        exports.fulfilled = _fulfilled;
+        exports.rejected = _rejected;
+    } else if (typeof define === 'function') {
         define([], function () {
             return after;
         });
