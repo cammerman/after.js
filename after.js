@@ -45,8 +45,12 @@
 
                     if (value2 && typeof(value2.then) === 'function') {
                         value2.then(
-                            createChainedFulfillmentListener(dependentPromise),
-                            createChainedRejectionListener(dependentPromise));
+                            function (value3) {
+                                dependentPromise.fulfill(value3);
+                            },
+                            function (reason3) {
+                                dependentPromise.reject(reason3);
+                            });
                     } else {
                         dependentPromise.fulfill(value2);
                     }
