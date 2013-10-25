@@ -65,7 +65,7 @@ function myAsyncOp() {
         }
     });
 
-    return promise;
+    return pending.promise;
 }
 ```
 
@@ -90,14 +90,14 @@ The code above, if the operation succeeds yielding a value of ```5```, will prod
 
 ```text
 Waiting for promise
-5
+Succeeded with value 5
 ```
 
 If the operation fails with a reason of ```404 not found```, it will produce the following output.
 
 ```text
 Waiting for promise
-404 not found
+Failed with reason 404 not found
 ```
 
 Notice that the message ```Waiting for promise``` was output first. This will be true *even if the promise operation was completed synchronously*. The Promises/A+ spec mandates that the fulfillment or rejection callbacks will not be called on the same JavaScript event loop iteration in which the ```then``` call was made.
@@ -106,7 +106,7 @@ Notice that the message ```Waiting for promise``` was output first. This will be
 
 One of the most useful properties of promises is that their resolution is chainable. This allows an API that produces promises to support an arbitrarily long, strictly ordered, asynchronously executed series of operations to be triggered at the completion of its promise-producing operations, with little or no need for nested callbacks. In fact, this is achieved without the operations in the series needing to be aware of each other at all.
 
-What's more, these operations can act choose to pass on a different fulfillment value or reason to the next function in line. This provides a very concise mechanism for implementing a pipeline pattern, or building isolation layers around a low-level asynchronous operation.
+What's more, these operations can choose to pass on a different fulfillment value or reason to the next function in line. This provides a very concise mechanism for implementing a pipeline pattern, or building isolation layers around a low-level asynchronous operation.
 
 Below is an example of promise chaining. It is contrived because all the links are defined in-place. But it is easy to read, and illustrates the simplifying power of promises. Note that there is no nesting of dependent callbacks or pipelined functions. All the chained steps are defined at the same nesting level, and in the order in which they will actually occur, regardless of synchrony (or lack thereof).
 
@@ -170,7 +170,7 @@ function authorize() {
         }
     });
 
-    return promise;
+    return pending.promise;
 }
 
 function authenticate() {
@@ -186,14 +186,12 @@ function authenticate() {
         }
     });
 
-    return promise;
+    return pending.promise;
 }
 
 function logIn() {
-    return authenticate.then(
-        function authenticateSuccess() {
-            return authorize();
-        },
+    return authenticate().then(
+        authorize,
         function authenticateFail(reason) {
             return reason;
         }
