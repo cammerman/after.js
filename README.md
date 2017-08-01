@@ -215,5 +215,5 @@ logIn().then(
 
 Here the user will see a success message only if both steps succeed, but they will see a failure message if either the first fails, or if the first succeeds and the second fails. And again, all without a single nested callback!
 
-#How Do I Know It Works?
+# How Do I Know It Works?
 If you have node.js installed you can execute the [Promises/A+ spec](https://github.com/promises-aplus/promises-spec) by running ```npm test``` at the console in the code folder.
