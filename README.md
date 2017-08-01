@@ -1,11 +1,11 @@
-#What Is It?
+# What Is It?
 After.js is an implementation of [Promises/A+](https://github.com/promises-aplus/promises-spec) for JavaScript.
 
 Oversimplified, a "promise" is an object that a function can return when it needs to say "I will try to produce a result for you, and if I can't, I'll tell you why. Either way, it's not ready at this moment. How should I contact you when it is?".
 
 The practical result of this is that when you receive or produce a promise, you can chain subsequent operations after it, promise-producing or otherwise. They will all be executed asynchronously, and in the proper order, without nesting callbacks. And all this can be accomplished using code that reads from top to bottom in the order that it will be executed. At least as much so as any completely synchronous code does. :smile:
 
-#How Does It Work?
+# How Does It Work?
 
 *All code samples in this section will assume the After.js namespace object has been assigned to a variable called ```After```.*
 
